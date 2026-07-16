@@ -8,15 +8,17 @@
   "configurePresets": [
     {
       "name": "windows-debug",
-      "displayName": "Windows Debug",
-      "description": "Debug configuration for Windows using the default CMake generator",
-      "binaryDir": "${sourceDir}/build/windows-debug"
+      "displayName": "Windows Debug x64",
+      "description": "Debug configuration for Windows x64",
+      "binaryDir": "${sourceDir}/build/windows-debug",
+      "architecture": "x64"
     },
     {
       "name": "windows-release",
-      "displayName": "Windows Release",
-      "description": "Release configuration for Windows using the default CMake generator",
-      "binaryDir": "${sourceDir}/build/windows-release"
+      "displayName": "Windows Release x64",
+      "description": "Release configuration for Windows x64",
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "architecture": "x64"
     }
   ],
   "buildPresets": [
