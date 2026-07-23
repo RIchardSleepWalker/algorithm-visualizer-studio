@@ -8,29 +8,33 @@
   "configurePresets": [
     {
       "name": "windows-debug",
-      "displayName": "Windows Debug x64",
-      "description": "Debug configuration for Windows x64",
+      "displayName": "Windows Debug",
+      "description": "Debug configuration for Windows using Ninja",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/windows-debug",
-      "architecture": "x64"
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     },
     {
       "name": "windows-release",
-      "displayName": "Windows Release x64",
-      "description": "Release configuration for Windows x64",
+      "displayName": "Windows Release",
+      "description": "Release configuration for Windows using Ninja",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/windows-release",
-      "architecture": "x64"
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "windows-debug",
-      "configurePreset": "windows-debug",
-      "configuration": "Debug"
+      "configurePreset": "windows-debug"
     },
     {
       "name": "windows-release",
-      "configurePreset": "windows-release",
-      "configuration": "Release"
+      "configurePreset": "windows-release"
     }
   ]
 }
