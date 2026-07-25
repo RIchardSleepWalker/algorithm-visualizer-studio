@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(avs_core_tests
     core/VersionTests.cpp
     core/AlgorithmStepTests.cpp
+    core/TimelineTests.cpp
 )
 
 target_link_libraries(avs_core_tests
