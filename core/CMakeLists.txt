@@ -2,6 +2,7 @@ add_library(avs_core
     src/Version.cpp
     src/algorithm/AlgorithmStep.cpp
     src/algorithm/Timeline.cpp
+    src/algorithm/AlgorithmRunner.cpp
     src/algorithm/sorting/BubbleSortStepper.cpp
 )
 
