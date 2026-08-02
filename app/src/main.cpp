@@ -1,11 +1,14 @@
 #include "avs/core/Version.hpp"
 #include "avs/core/algorithm/AlgorithmRunner.hpp"
 #include "avs/core/algorithm/sorting/BubbleSortStepper.hpp"
+#include "avs/core/algorithm/StepPayload.hpp"
 
 #include <iostream>
 #include <memory>
 #include <string_view>
 #include <vector>
+#include <cstddef>
+#include <variant>
 
 namespace
 {
@@ -26,6 +29,23 @@ namespace
         std::cout << ']';
     }
 
+    void printIndices(const std::vector<std::size_t>& indices)
+    {
+        std::cout << '[';
+
+        for (std::size_t i = 0; i < indices.size(); ++i)
+        {
+            std::cout << indices[i];
+
+            if (i + 1 < indices.size())
+            {
+                std::cout << ", ";
+            }
+        }
+
+        std::cout << ']';
+    }
+
     void printStep(const avs::core::algorithm::AlgorithmStep& step)
     {
         std::cout
@@ -35,6 +55,26 @@ namespace
             << '\n';
 
         std::cout << "  " << step.description() << '\n';
+
+        const auto* arrayPayload = std::get_if<avs::core::algorithm::ArrayStepPayload>(
+            &step.payload()
+        );
+
+        if (arrayPayload != nullptr)
+        {
+            std::cout << "  Values: ";
+            printValues(arrayPayload->values);
+            std::cout << '\n';
+
+            if (!arrayPayload->highlightedIndices.empty())
+            {
+                std::cout << "  Highlighted indices: ";
+                printIndices(arrayPayload->highlightedIndices);
+                std::cout << '\n';
+            }
+        }
+
+        std::cout << '\n';
     }
 }
 
@@ -70,7 +110,7 @@ int main()
         printStep(*step);
     }
 
-    std::cout << "\nExecution status: "
+    std::cout << "Execution status: "
         << avs::core::algorithm::to_string(runner.status())
         << '\n';
 
