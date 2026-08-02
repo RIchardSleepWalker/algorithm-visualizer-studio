@@ -1,9 +1,11 @@
 #include "avs/core/algorithm/sorting/BubbleSortStepper.hpp"
+#include "avs/core/algorithm/StepPayload.hpp"
 
 #include <gtest/gtest.h>
 
 #include <optional>
 #include <vector>
+#include <variant>
 
 namespace
 {
@@ -144,4 +146,43 @@ TEST(BubbleSortStepperTests, ReturnsNulloptAfterFinished)
     const auto noStep = stepper.nextStep();
 
     EXPECT_FALSE(noStep.has_value());
+}
+
+TEST(BubbleSortStepperTests, ComparisonStepContainsArrayPayload)
+{
+    BubbleSortStepper stepper({ 5, 1, 4 });
+
+    ASSERT_TRUE(stepper.nextStep().has_value());
+
+    const auto comparisonStep = stepper.nextStep();
+
+    ASSERT_TRUE(comparisonStep.has_value());
+    ASSERT_TRUE(hasPayload(comparisonStep->payload()));
+
+    const auto& payload = std::get<avs::core::algorithm::ArrayStepPayload>(
+        comparisonStep->payload()
+    );
+
+    EXPECT_EQ(payload.values, std::vector<int>({ 5, 1, 4 }));
+    EXPECT_EQ(payload.highlightedIndices, std::vector<std::size_t>({ 0, 1 }));
+}
+
+TEST(BubbleSortStepperTests, SwapStepContainsUpdatedArrayPayload)
+{
+    BubbleSortStepper stepper({ 5, 1, 4 });
+
+    ASSERT_TRUE(stepper.nextStep().has_value());
+    ASSERT_TRUE(stepper.nextStep().has_value());
+
+    const auto swapStep = stepper.nextStep();
+
+    ASSERT_TRUE(swapStep.has_value());
+    ASSERT_TRUE(hasPayload(swapStep->payload()));
+
+    const auto& payload = std::get<avs::core::algorithm::ArrayStepPayload>(
+        swapStep->payload()
+    );
+
+    EXPECT_EQ(payload.values, std::vector<int>({ 1, 5, 4 }));
+    EXPECT_EQ(payload.highlightedIndices, std::vector<std::size_t>({ 0, 1 }));
 }

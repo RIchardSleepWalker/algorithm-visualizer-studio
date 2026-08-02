@@ -2,9 +2,24 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace avs::core::algorithm::sorting
 {
+    namespace
+    {
+        StepPayload makeArrayPayload(
+            std::vector<int> values,
+            std::vector<std::size_t> highlightedIndices = {}
+        )
+        {
+            return ArrayStepPayload{
+                std::move(values),
+                std::move(highlightedIndices)
+            };
+        }
+    }
+
     BubbleSortStepper::BubbleSortStepper(std::vector<int> values)
         : initialValues_(std::move(values)),
         values_(initialValues_)
@@ -87,7 +102,8 @@ namespace avs::core::algorithm::sorting
             StepType::Initialization,
             AlgorithmCategory::Sorting,
             "Initialize Bubble Sort",
-            "Initialize Bubble Sort with " + std::to_string(values_.size()) + " elements."
+            "Initialize Bubble Sort with " + std::to_string(values_.size()) + " elements.",
+            makeArrayPayload(values_)
         );
     }
 
@@ -118,7 +134,8 @@ namespace avs::core::algorithm::sorting
             "Compare values " + std::to_string(leftValue)
             + " and " + std::to_string(rightValue)
             + " at indices " + std::to_string(leftIndex)
-            + " and " + std::to_string(rightIndex) + "."
+            + " and " + std::to_string(rightIndex) + ".",
+            makeArrayPayload(values_, { leftIndex, rightIndex })
         );
     }
 
@@ -143,7 +160,8 @@ namespace avs::core::algorithm::sorting
             "Swap values " + std::to_string(leftValue)
             + " and " + std::to_string(rightValue)
             + " at indices " + std::to_string(leftIndex)
-            + " and " + std::to_string(rightIndex) + "."
+            + " and " + std::to_string(rightIndex) + ".",
+            makeArrayPayload(values_, { leftIndex, rightIndex })
         );
     }
 
@@ -154,7 +172,8 @@ namespace avs::core::algorithm::sorting
             StepType::Finish,
             AlgorithmCategory::Sorting,
             "Finish Bubble Sort",
-            "Bubble Sort finished. The collection is sorted."
+            "Bubble Sort finished. The collection is sorted.",
+            makeArrayPayload(values_)
         );
     }
 

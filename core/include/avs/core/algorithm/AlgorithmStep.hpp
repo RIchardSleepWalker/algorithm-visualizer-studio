@@ -1,6 +1,7 @@
 #pragma once
 
 #include "avs/core/algorithm/AlgorithmCategory.hpp"
+#include "avs/core/algorithm/StepPayload.hpp"
 #include "avs/core/algorithm/StepType.hpp"
 
 #include <cstddef>
@@ -17,7 +18,8 @@ namespace avs::core::algorithm
             StepType type,
             AlgorithmCategory category,
             std::string title,
-            std::string description
+            std::string description,
+            StepPayload payload = {}
         );
 
         [[nodiscard]] std::size_t index() const noexcept;
@@ -25,6 +27,7 @@ namespace avs::core::algorithm
         [[nodiscard]] AlgorithmCategory category() const noexcept;
         [[nodiscard]] std::string_view title() const noexcept;
         [[nodiscard]] std::string_view description() const noexcept;
+        [[nodiscard]] const StepPayload& payload() const noexcept;
 
     private:
         std::size_t index_;
@@ -32,5 +35,6 @@ namespace avs::core::algorithm
         AlgorithmCategory category_;
         std::string title_;
         std::string description_;
+        StepPayload payload_;
     };
 }
