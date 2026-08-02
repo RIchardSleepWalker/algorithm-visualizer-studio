@@ -10,13 +10,15 @@ namespace avs::core::algorithm
         StepType type,
         AlgorithmCategory category,
         std::string title,
-        std::string description
+        std::string description,
+        StepPayload payload
     )
         : index_(index),
         type_(type),
         category_(category),
         title_(std::move(title)),
-        description_(std::move(description))
+        description_(std::move(description)),
+        payload_(std::move(payload))
     {
         if (title_.empty())
         {
@@ -47,5 +49,10 @@ namespace avs::core::algorithm
     std::string_view AlgorithmStep::description() const noexcept
     {
         return description_;
+    }
+
+    const StepPayload& AlgorithmStep::payload() const noexcept
+    {
+        return payload_;
     }
 }

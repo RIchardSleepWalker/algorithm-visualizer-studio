@@ -1,10 +1,13 @@
 #include "avs/core/algorithm/AlgorithmStep.hpp"
 #include "avs/core/algorithm/ExecutionStatus.hpp"
+#include "avs/core/algorithm/StepPayload.hpp"
 
 #include <gtest/gtest.h>
 
 #include <stdexcept>
 #include <string_view>
+#include <variant>
+#include <vector>
 
 namespace
 {
@@ -58,4 +61,28 @@ TEST(AlgorithmStepTests, ConvertsExecutionStatusToString)
 {
     EXPECT_EQ(to_string(ExecutionStatus::Running), std::string_view("Running"));
     EXPECT_EQ(to_string(ExecutionStatus::Finished), std::string_view("Finished"));
+}
+
+TEST(AlgorithmStepTests, StoresArrayStepPayload)
+{
+    const StepPayload payload = ArrayStepPayload{
+        {3, 1, 2},
+        {0, 1}
+    };
+
+    const AlgorithmStep step(
+        1,
+        StepType::Comparison,
+        AlgorithmCategory::Sorting,
+        "Compare values",
+        "Compare two array values.",
+        payload
+    );
+
+    ASSERT_TRUE(hasPayload(step.payload()));
+
+    const auto& arrayPayload = std::get<ArrayStepPayload>(step.payload());
+
+    EXPECT_EQ(arrayPayload.values, std::vector<int>({ 3, 1, 2 }));
+    EXPECT_EQ(arrayPayload.highlightedIndices, std::vector<std::size_t>({ 0, 1 }));
 }
