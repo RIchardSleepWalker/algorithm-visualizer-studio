@@ -4,6 +4,7 @@ add_library(avs_core
     src/algorithm/Timeline.cpp
     src/algorithm/AlgorithmRunner.cpp
     src/algorithm/sorting/BubbleSortStepper.cpp
+    src/execution/ExecutionController.cpp
 )
 
 target_include_directories(avs_core
