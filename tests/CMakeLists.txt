@@ -16,6 +16,7 @@ add_executable(avs_core_tests
     core/AlgorithmStepperTests.cpp
     core/BubbleSortStepperTests.cpp
     core/AlgorithmRunnerTests.cpp
+    core/ExecutionControllerTests.cpp
 )
 
 target_link_libraries(avs_core_tests
