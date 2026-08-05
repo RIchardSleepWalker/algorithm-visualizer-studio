@@ -1,5 +1,6 @@
 add_library(avs_visualization
     src/VisualizationModule.cpp
+    src/array/ArrayVisualizationState.cpp
 )
 
 target_include_directories(avs_visualization
