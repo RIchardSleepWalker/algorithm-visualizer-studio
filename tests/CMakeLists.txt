@@ -16,6 +16,7 @@ add_executable(avs_core_tests
     core/AlgorithmStepperTests.cpp
     core/BubbleSortStepperTests.cpp
     core/AlgorithmRunnerTests.cpp
+    core/ExecutionControllerTests.cpp
 )
 
 target_link_libraries(avs_core_tests
@@ -32,3 +33,20 @@ target_compile_features(avs_core_tests
 include(GoogleTest)
 
 gtest_discover_tests(avs_core_tests)
+
+add_executable(avs_visualization_tests
+    visualization/ArrayVisualizationStateTests.cpp
+)
+
+target_link_libraries(avs_visualization_tests
+    PRIVATE
+        avs_visualization
+        GTest::gtest_main
+)
+
+target_compile_features(avs_visualization_tests
+    PRIVATE
+        cxx_std_20
+)
+
+gtest_discover_tests(avs_visualization_tests)
