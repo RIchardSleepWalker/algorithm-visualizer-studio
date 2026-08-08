@@ -14,6 +14,7 @@ include(CTest)
 
 add_subdirectory(core)
 add_subdirectory(visualization)
+add_subdirectory(ui)
 add_subdirectory(app)
 
 if(BUILD_TESTING)
