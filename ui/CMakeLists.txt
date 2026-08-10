@@ -2,6 +2,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 add_library(avs_ui
     src/MainWindow.cpp
+    src/widgets/ArrayVisualizationWidget.cpp
 )
 
 target_include_directories(avs_ui
