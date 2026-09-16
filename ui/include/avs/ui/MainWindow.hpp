@@ -51,6 +51,7 @@
 
 class QLabel;
 class QPushButton;
+class QSlider;
 class QTimer;
 
 namespace avs::ui::widgets
@@ -73,16 +74,23 @@ namespace avs::ui
 
         void refreshView();
         void updateVisualizationFromCurrentStep();
+        void updateStepDetails();
+        void updatePlaybackSpeedLabel();
 
         void startPlayback();
         void pausePlayback();
         void handlePlaybackTick();
+        void handlePlaybackSpeedChanged(int intervalMs);
 
     private:
         std::unique_ptr<::avs::core::execution::ExecutionController> controller_;
 
         widgets::ArrayVisualizationWidget* arrayWidget_ = nullptr;
+
         QLabel* statusLabel_ = nullptr;
+        QLabel* stepTitleLabel_ = nullptr;
+        QLabel* stepDescriptionLabel_ = nullptr;
+        QLabel* playbackSpeedLabel_ = nullptr;
 
         QPushButton* previousButton_ = nullptr;
         QPushButton* nextButton_ = nullptr;
@@ -90,6 +98,9 @@ namespace avs::ui
         QPushButton* pauseButton_ = nullptr;
         QPushButton* resetButton_ = nullptr;
 
+        QSlider* playbackSpeedSlider_ = nullptr;
         QTimer* playbackTimer_ = nullptr;
+
+        int playbackIntervalMs_ = 500;
     };
 }

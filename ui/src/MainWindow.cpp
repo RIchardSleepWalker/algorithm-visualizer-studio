@@ -195,9 +195,12 @@
 #include "avs/ui/widgets/ArrayVisualizationWidget.hpp"
 #include "avs/visualization/array/ArrayVisualizationState.hpp"
 
+#include <QFontMetrics>
+#include <QFont>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSlider>
 #include <QString>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -210,7 +213,9 @@
 
 namespace
 {
-    constexpr int PlaybackIntervalMs = 500;
+    constexpr int MinPlaybackIntervalMs = 100;
+    constexpr int MaxPlaybackIntervalMs = 1500;
+    constexpr int DefaultPlaybackIntervalMs = 500;
 
     [[nodiscard]] QString toQString(std::string_view text)
     {
@@ -250,6 +255,7 @@ namespace avs::ui
 {
     MainWindow::MainWindow(QWidget* parent)
         : QMainWindow(parent)
+        , playbackIntervalMs_(DefaultPlaybackIntervalMs)
     {
         setWindowTitle("Algorithm Visualizer Studio");
         resize(1000, 700);
@@ -269,6 +275,16 @@ namespace avs::ui
 
         statusLabel_ = new QLabel(centralWidget);
 
+        stepTitleLabel_ = new QLabel(centralWidget);
+        stepDescriptionLabel_ = new QLabel(centralWidget);
+
+        stepTitleLabel_->setWordWrap(true);
+        stepDescriptionLabel_->setWordWrap(true);
+
+        QFont titleFont = stepTitleLabel_->font();
+        titleFont.setBold(true);
+        stepTitleLabel_->setFont(titleFont);
+
         arrayWidget_ = new widgets::ArrayVisualizationWidget(centralWidget);
 
         previousButton_ = new QPushButton("Previous", centralWidget);
@@ -276,6 +292,24 @@ namespace avs::ui
         startButton_ = new QPushButton("Start", centralWidget);
         pauseButton_ = new QPushButton("Pause", centralWidget);
         resetButton_ = new QPushButton("Reset", centralWidget);
+
+        playbackSpeedLabel_ = new QLabel(centralWidget);
+
+        const int playbackSpeedLabelWidth =
+            QFontMetrics(playbackSpeedLabel_->font())
+            .horizontalAdvance("Playback interval: 1500 ms") + 12;
+
+        playbackSpeedLabel_->setFixedWidth(playbackSpeedLabelWidth);
+        playbackSpeedLabel_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+        playbackSpeedSlider_ = new QSlider(Qt::Horizontal, centralWidget);
+        playbackSpeedSlider_->setRange(MinPlaybackIntervalMs, MaxPlaybackIntervalMs);
+        playbackSpeedSlider_->setSingleStep(50);
+        playbackSpeedSlider_->setPageStep(100);
+        playbackSpeedSlider_->setTickInterval(200);
+        playbackSpeedSlider_->setTickPosition(QSlider::TicksBelow);
+        playbackSpeedSlider_->setValue(DefaultPlaybackIntervalMs);
+        playbackSpeedSlider_->setMinimumWidth(260);
 
         auto* controlsLayout = new QHBoxLayout();
         controlsLayout->addWidget(previousButton_);
@@ -285,18 +319,28 @@ namespace avs::ui
         controlsLayout->addWidget(resetButton_);
         controlsLayout->addStretch();
 
+        auto* speedLayout = new QHBoxLayout();
+        speedLayout->addWidget(playbackSpeedLabel_);
+        speedLayout->addWidget(playbackSpeedSlider_);
+        speedLayout->addStretch();
+
         mainLayout->addWidget(statusLabel_);
+        mainLayout->addWidget(stepTitleLabel_);
+        mainLayout->addWidget(stepDescriptionLabel_);
         mainLayout->addWidget(arrayWidget_, 1);
         mainLayout->addLayout(controlsLayout);
+        mainLayout->addLayout(speedLayout);
 
         setCentralWidget(centralWidget);
+
+        updatePlaybackSpeedLabel();
     }
 
     void MainWindow::setupController()
     {
         auto stepper =
             std::make_unique<::avs::core::algorithm::sorting::BubbleSortStepper>(
-                std::vector<int>{5, 1, 4, 2, 8, 3, 2}
+                std::vector<int>{5, 1, 4, 2, 8, 3}
             );
 
         controller_ =
@@ -310,7 +354,7 @@ namespace avs::ui
     void MainWindow::setupPlaybackTimer()
     {
         playbackTimer_ = new QTimer(this);
-        playbackTimer_->setInterval(PlaybackIntervalMs);
+        playbackTimer_->setInterval(playbackIntervalMs_);
     }
 
     void MainWindow::connectSignals()
@@ -374,6 +418,16 @@ namespace avs::ui
         );
 
         QObject::connect(
+            playbackSpeedSlider_,
+            &QSlider::valueChanged,
+            this,
+            [this](int intervalMs)
+            {
+                handlePlaybackSpeedChanged(intervalMs);
+            }
+        );
+
+        QObject::connect(
             playbackTimer_,
             &QTimer::timeout,
             this,
@@ -414,9 +468,22 @@ namespace avs::ui
         refreshView();
     }
 
+    void MainWindow::handlePlaybackSpeedChanged(int intervalMs)
+    {
+        playbackIntervalMs_ = intervalMs;
+
+        if (playbackTimer_ != nullptr)
+        {
+            playbackTimer_->setInterval(playbackIntervalMs_);
+        }
+
+        updatePlaybackSpeedLabel();
+    }
+
     void MainWindow::refreshView()
     {
         updateVisualizationFromCurrentStep();
+        updateStepDetails();
 
         statusLabel_->setText(
             QString("Algorithm: %1 | Status: %2")
@@ -457,5 +524,34 @@ namespace avs::ui
         }
 
         arrayWidget_->setState(std::move(*visualizationState));
+    }
+
+    void MainWindow::updateStepDetails()
+    {
+        const auto* currentStep = controller_->currentStep();
+
+        if (currentStep == nullptr)
+        {
+            stepTitleLabel_->setText("Step: -");
+            stepDescriptionLabel_->setText("No step selected.");
+            return;
+        }
+
+        stepTitleLabel_->setText(
+            QString("Step %1: %2")
+            .arg(currentStep->index())
+            .arg(toQString(currentStep->title()))
+        );
+
+        stepDescriptionLabel_->setText(
+            toQString(currentStep->description())
+        );
+    }
+
+    void MainWindow::updatePlaybackSpeedLabel()
+    {
+        playbackSpeedLabel_->setText(
+            QString("Playback interval: %1 ms ").arg(playbackIntervalMs_)
+        );
     }
 }
