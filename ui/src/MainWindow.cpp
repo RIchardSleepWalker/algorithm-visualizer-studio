@@ -195,18 +195,22 @@
 #include "avs/ui/widgets/ArrayVisualizationWidget.hpp"
 #include "avs/visualization/array/ArrayVisualizationState.hpp"
 
-#include <QFontMetrics>
 #include <QFont>
+#include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSlider>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -249,6 +253,46 @@ namespace
 
         return "Unknown";
     }
+
+    [[nodiscard]] std::optional<std::vector<int>> parseArrayInput(const QString& text)
+    {
+        const QString trimmedText = text.trimmed();
+
+        if (trimmedText.isEmpty())
+        {
+            return std::nullopt;
+        }
+
+        const QStringList parts = trimmedText.split(',', Qt::SkipEmptyParts);
+
+        if (parts.empty())
+        {
+            return std::nullopt;
+        }
+
+        std::vector<int> values;
+        values.reserve(static_cast<std::size_t>(parts.size()));
+
+        for (const QString& part : parts)
+        {
+            bool ok = false;
+            const int value = part.trimmed().toInt(&ok);
+
+            if (!ok)
+            {
+                return std::nullopt;
+            }
+
+            values.push_back(value);
+        }
+
+        if (values.empty())
+        {
+            return std::nullopt;
+        }
+
+        return values;
+    }
 }
 
 namespace avs::ui
@@ -261,7 +305,7 @@ namespace avs::ui
         resize(1000, 700);
 
         setupUi();
-        setupController();
+        setupController(std::vector<int>{5, 1, 4, 2, 8, 3});
         setupPlaybackTimer();
         connectSignals();
 
@@ -284,6 +328,12 @@ namespace avs::ui
         QFont titleFont = stepTitleLabel_->font();
         titleFont.setBold(true);
         stepTitleLabel_->setFont(titleFont);
+
+        arrayInputEdit_ = new QLineEdit(centralWidget);
+        arrayInputEdit_->setText("5,1,4,2,8,3");
+        arrayInputEdit_->setPlaceholderText("Enter values, e.g. 5,1,4,2,8,3");
+
+        loadArrayButton_ = new QPushButton("Load Array", centralWidget);
 
         arrayWidget_ = new widgets::ArrayVisualizationWidget(centralWidget);
 
@@ -311,6 +361,11 @@ namespace avs::ui
         playbackSpeedSlider_->setValue(DefaultPlaybackIntervalMs);
         playbackSpeedSlider_->setMinimumWidth(260);
 
+        auto* inputLayout = new QHBoxLayout();
+        inputLayout->addWidget(new QLabel("Array:", centralWidget));
+        inputLayout->addWidget(arrayInputEdit_, 1);
+        inputLayout->addWidget(loadArrayButton_);
+
         auto* controlsLayout = new QHBoxLayout();
         controlsLayout->addWidget(previousButton_);
         controlsLayout->addWidget(nextButton_);
@@ -325,6 +380,7 @@ namespace avs::ui
         speedLayout->addStretch();
 
         mainLayout->addWidget(statusLabel_);
+        mainLayout->addLayout(inputLayout);
         mainLayout->addWidget(stepTitleLabel_);
         mainLayout->addWidget(stepDescriptionLabel_);
         mainLayout->addWidget(arrayWidget_, 1);
@@ -336,11 +392,11 @@ namespace avs::ui
         updatePlaybackSpeedLabel();
     }
 
-    void MainWindow::setupController()
+    void MainWindow::setupController(std::vector<int> values)
     {
         auto stepper =
             std::make_unique<::avs::core::algorithm::sorting::BubbleSortStepper>(
-                std::vector<int>{5, 1, 4, 2, 8, 3}
+                std::move(values)
             );
 
         controller_ =
@@ -411,9 +467,40 @@ namespace avs::ui
             [this]()
             {
                 pausePlayback();
-                controller_->reset();
-                controller_->stepForward();
+
+                const auto parsedValues = parseArrayInput(arrayInputEdit_->text());
+
+                if (parsedValues.has_value())
+                {
+                    setupController(*parsedValues);
+                }
+                else
+                {
+                    setupController(std::vector<int>{5, 1, 4, 2, 8, 3});
+                    arrayInputEdit_->setText("5,1,4,2,8,3");
+                }
+
                 refreshView();
+            }
+        );
+
+        QObject::connect(
+            loadArrayButton_,
+            &QPushButton::clicked,
+            this,
+            [this]()
+            {
+                handleLoadArrayRequested();
+            }
+        );
+
+        QObject::connect(
+            arrayInputEdit_,
+            &QLineEdit::returnPressed,
+            this,
+            [this]()
+            {
+                handleLoadArrayRequested();
             }
         );
 
@@ -480,6 +567,27 @@ namespace avs::ui
         updatePlaybackSpeedLabel();
     }
 
+    void MainWindow::handleLoadArrayRequested()
+    {
+        pausePlayback();
+
+        const auto parsedValues = parseArrayInput(arrayInputEdit_->text());
+
+        if (!parsedValues.has_value())
+        {
+            QMessageBox::warning(
+                this,
+                "Invalid array input",
+                "Enter a comma-separated list of integers, for example: 5,1,4,2,8,3"
+            );
+
+            return;
+        }
+
+        setupController(*parsedValues);
+        refreshView();
+    }
+
     void MainWindow::refreshView()
     {
         updateVisualizationFromCurrentStep();
@@ -498,6 +606,8 @@ namespace avs::ui
         startButton_->setEnabled(!running && controller_->canStepForward());
         pauseButton_->setEnabled(running);
         resetButton_->setEnabled(true);
+        loadArrayButton_->setEnabled(!running);
+        arrayInputEdit_->setEnabled(!running);
     }
 
     void MainWindow::updateVisualizationFromCurrentStep()
@@ -551,7 +661,7 @@ namespace avs::ui
     void MainWindow::updatePlaybackSpeedLabel()
     {
         playbackSpeedLabel_->setText(
-            QString("Playback interval: %1 ms ").arg(playbackIntervalMs_)
+            QString("Playback interval: %1 ms").arg(playbackIntervalMs_)
         );
     }
 }

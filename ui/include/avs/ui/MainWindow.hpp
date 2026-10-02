@@ -48,8 +48,10 @@
 #include <QMainWindow>
 
 #include <memory>
+#include <vector>
 
 class QLabel;
+class QLineEdit;
 class QPushButton;
 class QSlider;
 class QTimer;
@@ -68,7 +70,7 @@ namespace avs::ui
 
     private:
         void setupUi();
-        void setupController();
+        void setupController(std::vector<int> values);
         void setupPlaybackTimer();
         void connectSignals();
 
@@ -81,6 +83,7 @@ namespace avs::ui
         void pausePlayback();
         void handlePlaybackTick();
         void handlePlaybackSpeedChanged(int intervalMs);
+        void handleLoadArrayRequested();
 
     private:
         std::unique_ptr<::avs::core::execution::ExecutionController> controller_;
@@ -91,6 +94,9 @@ namespace avs::ui
         QLabel* stepTitleLabel_ = nullptr;
         QLabel* stepDescriptionLabel_ = nullptr;
         QLabel* playbackSpeedLabel_ = nullptr;
+
+        QLineEdit* arrayInputEdit_ = nullptr;
+        QPushButton* loadArrayButton_ = nullptr;
 
         QPushButton* previousButton_ = nullptr;
         QPushButton* nextButton_ = nullptr;
