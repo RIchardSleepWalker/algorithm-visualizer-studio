@@ -121,6 +121,8 @@
 //    return 0;
 //}
 
+//Above old version of main.cpp, now replaced with GUI version below
+
 #include "avs/ui/MainWindow.hpp"
 
 #include <QApplication>
